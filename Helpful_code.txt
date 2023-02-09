@@ -1,0 +1,146 @@
+###############################
+### Helpful pieces of code: ###
+###############################
+
+# Shebangs
+#! usr/bin/python3
+#!/bin/bash 
+#!/usr/bin/env perl
+#!/usr/bin/env Rscript
+
+# Remove spurious characters created by Windows
+sed -i -e 's/\r$//' create_mgw_3shelf_6xIPNI1P.sh
+
+# Add current directory to $PATH
+export PATH=$PATH:$(pwd)
+
+# Fix time sync problem 
+sudo date -s "$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z"
+
+# log on to the HPC
+/usr/bin/ssh -l vlb19 login.cx1.hpc.ic.ac.uk
+
+# Convert from windows to linux file formatting 
+dos2unix filename
+
+# Recursively go through every file in a folder and convert to linux formatting
+find . -type f -print0 | xargs -0 dos2unix
+
+# Change the IDs within the files
+sed -i -- 's/ECU/Encephalitozoon_cuniculi_GB-M1/g' Encephalitozoon_cuniculi_GB*
+
+# Remove the original names 
+perl -pi -e 's{ \b Encephalitozoon_cuniculi_GB \b .*? \b space \b}{}x' Encephalitozoon_cuniculi_GB*
+sed 's/\bEU[^ ]*//' Encephalitozoon_cuniculi_GB*
+
+# Change tabs to commas in a file
+sed -i 's/\t/,/g' inputfile
+
+# Common error message when you first log on to the cluster:
+
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+        LANGUAGE = "en_US:en",
+        LC_ALL = (unset),
+        LC_CTYPE = "fr_LU.UTF-8",
+        LANG = "en_US.UTF-8"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+
+#To suppress this message, go onto your ~/.bashrc file and uncomment the following lines:
+
+enable en_US locale w/ UTF-8 encodings if not already configured
+${LANG:="en_US.UTF-8"}
+${LANGUAGE:="en"}
+${LC_CTYPE:="en_US.UTF-8"}
+${LC_ALL:="en_US.UTF-8"}
+export LANG LANGUAGE LC_CTYPE LC_ALL
+
+# Anaconda environments on the HPC
+module load anaconda3
+source activate perl_env
+
+# Installing Bioperl
+conda install -c bioconda perl-bioperl
+conda install -c conda-forge biopython
+cpanm Bio::DB::EUtilities
+
+# Installing ncbi blast legacy
+conda install -c bioconda blast-legacy
+# or alternatively 
+conda install -c bioconda/label/cf201901 blast-legacy
+
+# install cpanminus
+conda install -c bioconda perl-app-cpanminus
+
+# Install local library and all dependencies
+conda install -c bioconda perl-local-lib
+
+# Giving executable files permission in windows 
+
+chmod u+x path/to/file
+
+###############################
+### Check file exists first ###
+###############################
+
+for filename in /path/to/*.pdf
+do
+    # failsafe, does filename exists? 
+    # if not continue 
+    [ -e "$filename" ] || continue
+    _run_commands_on "$filename"
+done
+
+##################################
+### Getting Bio::SeqIO working ###
+##################################
+
+# Install biopython 
+pip install biopython 
+
+# Go into python shell 
+from Bio import SeqIO
+
+##################
+### R Markdown ###
+##################
+
+# To knit from the command line
+rmarkdown::render("input.Rmd")
+
+
+################################
+### System variables in bash ###
+################################
+
+BASH # Holds our shell name 
+BASH_VERSION # Holds our shell version name 
+HOME # Holds home directory path 
+OSTYPE # Holds OS type 
+USERNAME # Holds username who is currently logged on to the machine
+
+##############
+### BUSCOs ###
+##############
+
+Third-party components to get BUSCOs to work manually: 
+https://busco.ezlab.org/busco_userguide.html
+
+# conda installations for braker2 
+conda install -c anaconda perl
+conda install -c bioconda perl-app-cpanminus
+conda install -c bioconda perl-hash-merge
+conda install -c bioconda perl-parallel-forkmanager
+conda install -c bioconda perl-scalar-util-numeric
+conda install -c bioconda perl-yaml
+conda install -c bioconda perl-class-data-inheritable
+conda install -c bioconda perl-exception-class
+conda install -c bioconda perl-test-pod
+conda install -c anaconda biopython
+conda install -c bioconda perl-file-which # skip if you are not comparing to reference annotation
+conda install -c bioconda perl-mce
+conda install -c bioconda perl-threaded
+conda install -c bioconda perl-list-util
+conda install -c bioconda perl-math-utils
+conda install -c bioconda cdbtools
