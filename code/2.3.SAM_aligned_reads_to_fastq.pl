@@ -19,8 +19,8 @@ while(my $line=<$fh>) {
 	my @bits = split /\t/, $line;
 	my ($qname, $bitwise, $rname, $pos, $mapq, $cigar, $rnext, $pnext, $tlen, $seq, $qual) = @bits;
 	
-	# ignore aligned
-	next if($rname ne '*');
+	# ignore unaligned
+	next if($rname eq '*');
 
 	# print fastq
 	print "\@$qname\n$seq\n+\n$qual\n";
