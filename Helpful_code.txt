@@ -109,6 +109,12 @@ from Bio import SeqIO
 # To knit from the command line
 rmarkdown::render("input.Rmd")
 
+##################
+### R commands ###
+##################
+
+# Make plot text italics with base package
+substitute(paste(italic('Scatterplot of x vs. y')))
 
 ################################
 ### System variables in bash ###
