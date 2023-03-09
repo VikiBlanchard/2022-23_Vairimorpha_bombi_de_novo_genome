@@ -215,16 +215,13 @@ bash ../../../code/4.0_polish_genome_with_pilon.sh Polish_loop_1.fasta.fasta 3 A
 # mkdir "results_Vairimorpha_bombi_8.1-3/8.Tigs_with_more_than_1x_coverage"
 
 # Generate file with depth per read
-perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/SAM_how_many_reads_align.pl' -s '../Short_read_prep/all_short_reads.fastq-mem.sam'
+perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/SAM_how_many_reads_align.pl' -s 'all_short_reads.fastq-mem.sam'
 
 # Generate file with tig names with less than 1x coverage 
-perl "../../../code/read_coverage_with_contig_names.pl" "all_short_reads.fastq-mem.sam-reads-aligned-to-which-contigs3.tab" 1 > "contigs_with_greater_than_1x_coverage.txt"
+perl "../../../code/read_coverage_with_contig_names.pl" "all_short_reads.fastq-mem.sam-reads-aligned-to-which-contigs3.tab" 1 > "contigs_with_less_than_1x_coverage.txt"
 
 # Filter reads
-perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s 'Polish_loop_3.fasta.fasta' -l 'contigs_with_greater_than_1x_coverage.txt' -p fasta > 'contigs_with_more_than_1x_coverage.fasta'
-
-# Reorder contigs 
-perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s contigs_with_more_than_1x_coverage.fasta -j b -p fasta > contigs_with_more_than_1x_coverage.fasta-reordered.fasta 
+perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s 'Polish_loop_3.fasta.fasta' -l 'contigs_with_less_than_1x_coverage.txt' -p fasta > 'contigs_with_more_than_1x_coverage.fasta'
 
 
 ##############################################################################
@@ -232,20 +229,52 @@ perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/
 ##############################################################################
 
 # Get list of contigs with matches in V. apis and/or V. ceranae 
-sed -nr 's/.*Vairimorpha_bombi_8.1-3no1x\t(.*)/\1/p' '/home/vlb19/Documents/Coding/2021-2022_Microsporidia_Comparative_Genomics/synima_runs/Synima_subset/Vairimorpha_bombi_8.1-3no1x_vs_apis_and_ceranae/Repo_spec.txt.dagchainer.aligncoords' > matched_contig_IDs.txt
+sed -nr 's/.*Vairimorpha_bombi_8.1-3no1x\t(.*)/\1/p' 'Repo_spec.txt.dagchainer.aligncoords' > matched_contig_IDs.txt
 sed -i "s/Vairimorpha_bombi_8.1-3no1x.*/ /g" matched_contig_IDs.txt
 
 # Get unique contig IDs with matches
 cat matched_contig_IDs.txt  | sort | uniq > unique_matched_contig_IDs.txt
 
 # Get list of contigs in assembly 
-sed -nr 's/>(.*)/\1/p' '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/10.SynIma_files_Vairimorpha_bombi_8.1-3_1x_coverage_filtered/Vairimorpha_bombi_8.1-3no1x.genome.fa' | sort > all_contigs.txt
+sed -nr 's/>(.*)/\1/p' 'Vairimorpha_bombi_8.1-3no1x/Vairimorpha_bombi_8.1-3no1x.genome.fa' | sort > all_contigs.txt
 
 # Get list of contigs with no matches 
 join -v1 -v2 unique_matched_contig_IDs.txt all_contigs.txt > contigs_with_no_matches.txt
 
 # Remove contigs with no matches 
-perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/10.SynIma_files_Vairimorpha_bombi_8.1-3_1x_coverage_filtered/Vairimorpha_bombi_8.1-3no1x.genome.fa' -l 'contigs_with_no_matches.txt' -p fasta > 'Ortholog-match_filtered_assembly.fasta' 
+perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s 'Vairimorpha_bombi_8.1-3no1x/Vairimorpha_bombi_8.1-3no1x.genome.fa' -l 'contigs_with_no_matches.txt' -p fasta > '../../8.Filtering/Contigs_with_sister_orthologs_only/Ortholog-match_filtered_assembly.fasta' 
+
+# Remove contigs with no matches from braker file
+grep -f "unique_matched_contig_IDs.txt" "braker.gtf" > Vairimorpha_bombi_8.1-3_sister_orthologs.gtf
+
+
+#################################################################
+### Filter only contigs with orthologs in other microsporidia ###
+#################################################################
+
+# Get list of contigs with matches in any other microsporidia 
+sed -nr 's/.*Vairimorpha_bombi_8.1-3no1x\t(.*)/\1/p' 'Repo_spec.txt.dagchainer.aligncoords' > matched_contig_IDs.txt
+sed -i "s/Vairimorpha_bombi_8.1-3no1x.*/ /g" matched_contig_IDs.txt
+
+# Get unique contig IDs with matches
+cat matched_contig_IDs.txt  | sort | uniq > unique_matched_contig_IDs.txt
+
+# Get list of contigs in assembly 
+sed -nr 's/>(.*)/\1/p' 'Vairimorpha_bombi_8.1-3no1x/Vairimorpha_bombi_8.1-3no1x.genome.fa' | sort > all_contigs.txt
+
+# Get list of contigs with no matches 
+join -v1 -v2 unique_matched_contig_IDs.txt all_contigs.txt > contigs_with_no_matches.txt
+
+# Remove contigs with no matches 
+perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s 'Vairimorpha_bombi_8.1-3no1x/Vairimorpha_bombi_8.1-3no1x.genome.fa' -l 'contigs_with_no_matches.txt' -p fasta > '../../8.Filtering/Contigs_with_microsporidia_orthologs_only/Microsporidia_ortholog-match_filtered_assembly.fasta' 
+
+# Remove spaces from contig ID file 
+sed -i 's/ //g' "unique_matched_contig_IDs.txt"
+sed -i 's/\t//g' "unique_matched_contig_IDs.txt"
+
+# Remove contigs with no matches from braker file
+grep -f "unique_matched_contig_IDs.txt" "braker.gtf" > Vairimorpha_bombi_8.1-3_microsporidia_orthologs.gtf
+
 
 ###########################
 ### Softmask the genome ### 
@@ -278,6 +307,9 @@ RepeatMasker -species fungi -pa 8 -dir ./ -gff -e ncbi -s 'Polish_loop_3.fasta.f
 RepeatMasker -species bacteria -pa 8 -dir ./ -gff -e ncbi -s 'Polish_loop_3.fasta.fasta.masked'
 RepeatMasker -species viruses -pa 8 -dir ./ -gff -e ncbi -s 'Polish_loop_3.fasta.fasta.masked.masked'
 
+RepeatMasker -species fungi -pa 8 -dir ./ -gff -e ncbi -s 'contigs_with_more_than_1x_coverage.fasta'
+RepeatMasker -species bacteria -pa 8 -dir ./ -gff -e ncbi -s 'contigs_with_more_than_1x_coverage.fasta.masked'
+RepeatMasker -species viruses -pa 8 -dir ./ -gff -e ncbi -s 'contigs_with_more_than_1x_coverage.fasta.masked.masked'
 
 #######################
 ### Annotate genome ###
@@ -285,6 +317,8 @@ RepeatMasker -species viruses -pa 8 -dir ./ -gff -e ncbi -s 'Polish_loop_3.fasta
 
 # Run Braker2 on masked genome
 braker.pl --genome="Polish_loop_3.fasta.fasta.masked.masked" --esmode --softmasking --cores 4 --AUGUSTUS_BIN_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/bin --AUGUSTUS_SCRIPTS_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/scripts
+
+braker.pl --genome="Ortholog-match_filtered_assembly.fasta" --esmode --softmasking --cores 4 --AUGUSTUS_BIN_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/bin --AUGUSTUS_SCRIPTS_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/scripts 
 
 # additional option "--fungus" is available
 
@@ -310,13 +344,16 @@ awk -i inplace '!/stop_codon/' braker.gff3
 
 # Generate .CDS file using gffread  
 gffread -g 'Polish_loop_3.fasta.fasta.masked.masked' -x ${isolate}.annotation.cds braker.gff3
+gffread -g Vairimorpha_bombi_8.1-3_microsporidia_orthologs.fasta  -x ${isolate}.annotation.cds braker.gff3
 
 # Generate protein.fa file using gffread  
 gffread -g 'Polish_loop_3.fasta.fasta.masked.masked' -y ${isolate}.annotation.pep braker.gff3 
+gffread -g Vairimorpha_bombi_8.1-3_microsporidia_orthologs.fasta  -y ${isolate}.annotation.pep braker.gff3
 
 # Rename files for Synima
 mv Polish_loop_3.fasta.fasta.masked.masked ${isolate}.genome.fa
 mv braker.gff3 ${isolate}.annotation.gff3 # gff3
+mv Ortholog-match_filtered_assembly.fasta  ${isolate}.genome.fa
 
 
 ##################
@@ -344,7 +381,7 @@ perl ../util/Blast_all_vs_all_repo_to_OrthoMCL.pl -r ./Repo_spec.txt
 perl ../util/Orthologs_to_summary.pl -o all_orthomcl.out
 perl ../util/DAGchainer_from_gene_clusters.pl -r ./Repo_spec.txt \
              -c GENE_CLUSTERS_SUMMARIES.OMCL/GENE_CLUSTERS_SUMMARIES.clusters
-perl ../SynIma.pl -a Repo_spec.txt.dagchainer.aligncoords -b Repo_spec.txt.dagchainer.aligncoords.spans
+perl ../SynIma.pl -a Repo_spec.txt.dagchainer.aligncoords -b Repo_spec.txt.dagchainer.aligncoords.spans -z y -c g
 
 
 ##############################################
@@ -353,3 +390,69 @@ perl ../SynIma.pl -a Repo_spec.txt.dagchainer.aligncoords -b Repo_spec.txt.dagch
 
 bash code/4.1.0.run_busco_analysis.sh ${isolate} '/home/vlb19/Documents/Coding/2022_Vairimorpha_Genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Pilon.1.2.4/Pilon_polished_assembly.fasta-reordered-renamed.fasta' "No_bombus"
 
+DataDir="$( echo $(pwd))/Data"
+mkdir busco_results_microsporidia 
+mkdir busco_results_fungi
+
+conda activate busco_analysis
+
+# Run BUSCO analysis with microsporidia database 
+for dir in "$DataDir"/*; do # for each directory in Data
+    for file in /"$dir"/"*".pep; do # for each .faa file in each directory
+        cd $DataDir/../busco_results_microsporidia # switch into the results directory
+        busco -m proteins -i $file -l microsporidia_odb10 -o "busco_microsporidia_"$(basename -- "$dir") -f # run busco analyis on the protein file
+    done 
+    cd $DataDir/.. # change back to the working directory
+done 
+
+# Run BUSCO analysis with fungi database
+for dir in "$DataDir"/*/; do # for each directory in Data
+    for file in /"$dir"/"*".pep; do # for each pep file in each directory
+        cd $DataDir/../busco_results_fungi # switch into the results directory
+        busco -m proteins -i $file -l fungi_odb10 -o "busco_fungi_"$(basename -- "$dir")   # run busco analyis on the protein file
+    done 
+    cd $DataDir/.. # change back to the working directory
+done 
+
+### Generate comparison plot
+mkdir busco_results_microsporidia/ResultsSummary
+BuscoResults="$( echo $(pwd))/busco_results_microsporidia" # store path to directory
+
+# Remove busco_downloads folder generated in the analysis
+rm -r $BuscoResults/busco_downloads
+
+# Add all the short summaries to the summary folder
+for dir in "$BuscoResults"/*; do
+    cp "$dir"/short_summary* $BuscoResults/ResultsSummary
+done
+
+# Generate plot of all microsporidia BUSCO data
+python3 /home/vlb19/Documents/Coding/Downloaded_Repositories/busco/scripts/generate_plot.py -wd $BuscoResults/ResultsSummary
+
+mkdir ResultsSummary
+BuscoResults="$( echo $(pwd))/busco_results_fungi" # store path to directory
+BuscoResults=./
+# Remove busco_downloads folder generated in the analysis
+rm -r $BuscoResults/busco_downloads
+
+# Add all the short summaries to the summary folder
+for dir in "$BuscoResults"/*; do
+    cp "$dir"/short_summary* $BuscoResults/ResultsSummary
+done
+
+# Generate plot of all fungal BUSCO data
+python3 /home/vlb19/Documents/Coding/Downloaded_Repositories/busco/scripts/generate_plot.py -wd $BuscoResults/ResultsSummary
+
+
+conda deactivate
+
+conda activate canu_assembly
+# Assess assembly quality with Quast
+quast.py './Vairimorpha_bombi_8.1-3_microsporidia_orthologs/Vairimorpha_bombi_8.1-3_microsporidia_orthologs.fasta' -o ./Vairimorpha_bombi_8.1-3_microsporidia_orthologs_quastplot_report
+conda deactivate
+
+##################################
+### Generate phylogenetic tree ###
+##################################
+
+# run tree_file_maker.sh 
