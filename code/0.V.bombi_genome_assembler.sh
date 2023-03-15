@@ -80,9 +80,13 @@ bash code/3.run_canu_assembler.sh "${isolate}" "3.No_B_terrestris" "../2.align_r
 # Run canu assembler on raw high quality reads
 #bash code/3.run_canu_assembler.sh "${isolate}" "3.raw" "../1.${isolate}_high_qual_reads/${isolate}_high_qual_reads.fastq" 
 
+# Run canu assembler on reads that did not align to contaminants
+bash ../../../../code/3.run_canu_assembler.sh "V.bombi" "3.No_contaminants" "V.bombi_contaminant_filtered.fasta"
+
 # Look at GC content of every sequence in FASTA file 
 seqkit fx2tab --name --only-id --gc "results_${isolate}/3.raw_${isolate}_assembly/3.raw_$isolate.contigs.fasta"
 
+# Look at GC content of every sequence in FASTA file 
 seqkit fx2tab --name --only-id --gc 'results_Vairimorpha_bombi_8.1-3/3.No_B_terrestris_Vairimorpha_bombi_8.1-3_assembly/3.No_B_terrestris_Vairimorpha_bombi_8.1-3.contigs.fasta' | cat > "results_Vairimorpha_bombi_8.1-3/${isolate}_content_per_tig.tsv"
 
 ####################################
@@ -125,41 +129,64 @@ zcat ${novogene_short_reads}/*/*_2.fq.gz | gzip >> ${novogene_short_reads}/Novog
 # Trim adapters from short reads from Sam
 cd '/home/vlb19/Documents/Coding/Downloaded_Repositories/Trimmomatic/dist/jar'
 
-trimlog_file="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/sam_reads_trimmomatic_log.txt"
-summary_file="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/sam_reads_stats_summary.txt"
+trimlog_file="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/sam_reads_trimmomatic_log.txt"
+summary_file="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/sam_reads_stats_summary.txt"
 
-short_read_f1=${sam_short_reads}/Sam_combined_short_reads_R1.fastq.gz
-short_read_f2=${sam_short_reads}/Sam_combined_short_reads_R2.fastq.gz
+short_read_f1='/media/vlb19/Expansion1/Vairimorpha_bombi_sequences/Short_read_sequences/Sam_short_read_sequences/Sam_combined_short_reads_R1.fastq.gz'
+short_read_f2='/media/vlb19/Expansion1/Vairimorpha_bombi_sequences/Short_read_sequences/Sam_short_read_sequences/Sam_combined_short_reads_R2.fastq.gz'
 
-trimmed_short_read_f1="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Sam_combined_short_reads_R1_trimmed.fastq.gz"
-trimmed_short_read_f2="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Sam_combined_short_reads_R2_trimmed.fastq.gz"
+trimmed_short_read_f1="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/Sam_combined_short_reads_R1_trimmed.fastq.gz"
+trimmed_short_read_f2="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/Sam_combined_short_reads_R2_trimmed.fastq.gz"
 
-untrimmed_short_read_f1="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Sam_combined_short_reads_R1_untrimmed.fastq.gz"
-untrimmed_short_read_f2="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Sam_combined_short_reads_R2_untrimmed.fastq.gz"
+untrimmed_short_read_f1="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/Sam_combined_short_reads_R1_untrimmed.fastq.gz"
+untrimmed_short_read_f2="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/Sam_combined_short_reads_R2_untrimmed.fastq.gz"
 
 java -jar trimmomatic-0.40-rc1.jar PE -threads 4 -phred33 -trimlog $trimlog_file -summary $summary_file $short_read_f1 $short_read_f2 $trimmed_short_read_f1 $untrimmed_short_read_f1 $trimmed_short_read_f2 $untrimmed_short_read_f2 ILLUMINACLIP:../../adapters/TruSeq3-PE-2.fa:2:30:10:1 SLIDINGWINDOW:4:15 MINLEN:36 
 
 
 # Trim adapters from novogene files
-trimlog_file="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/novogene_reads_trimmomatic_log.txt"
-summary_file="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/novogene_reads_stats_summary.txt"
+trimlog_file="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/novogene_reads_trimmomatic_log.txt"
+summary_file="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/novogene_reads_stats_summary.txt"
 
 short_read_f1=${novogene_short_reads}/Novogene_combined_short_reads_R1.fastq.gz
 short_read_f2=${novogene_short_reads}/Novogene_combined_short_reads_R2.fastq.gz
 
-trimmed_short_read_f1="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Novogene_combined_short_reads_R1_trimmed.fastq.gz"
-trimmed_short_read_f2="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Novogene_combined_short_reads_R2_trimmed.fastq.gz"
+trimmed_short_read_f1="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/Novogene_combined_short_reads_R1_trimmed.fastq.gz"
+trimmed_short_read_f2="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/Novogene_combined_short_reads_R2_trimmed.fastq.gz"
 
-untrimmed_short_read_f1="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Novogene_combined_short_reads_R1_untrimmed.fastq.gz"
-untrimmed_short_read_f2="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Novogene_combined_short_reads_R2_untrimmed.fastq.gz"
+untrimmed_short_read_f1="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/Novogene_combined_short_reads_R1_untrimmed.fastq.gz"
+untrimmed_short_read_f2="/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/Novogene_combined_short_reads_R2_untrimmed.fastq.gz"
 
 java -jar trimmomatic-0.40-rc1.jar PE -threads 4 -phred33 -trimlog $trimlog_file -summary $summary_file $short_read_f1 $short_read_f2 $trimmed_short_read_f1 $untrimmed_short_read_f1 $trimmed_short_read_f2 $untrimmed_short_read_f2 ILLUMINACLIP:../../adapters/TruSeq3-PE-2.fa:2:30:10:1 SLIDINGWINDOW:4:15 MINLEN:36 
 
 # Change back to results directory 
-cd '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep'
+cd '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep'
 
 # Unzip compressed fastq files 
-gunzip ./*/*.fastq.gz
+gunzip *_trimmed.fastq.gz
+
+# Combine all reads
+cat Novogene_combined_short_reads_R1_trimmed.fastq > all_short_reads_R1.fastq
+cat Sam_combined_short_reads_R1_trimmed.fastq >> all_short_reads_R1.fastq
+cat Novogene_combined_short_reads_R2_trimmed.fastq > all_short_reads_R2.fastq
+cat Sam_combined_short_reads_R2_trimmed.fastq >> all_short_reads_R2.fastq
+
+# Align all reads combined to the canu assembly 
+bash ../../../code/2.1.0.FASTQ_to_BAM_using_BWA.sh '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/8.Filtering/all_orthogroups/my_outputs/3.No_contaminants_V.bombi.contigs.fasta' all_short_reads_R1.fastq all_short_reads_R2.fastq
+
+# Convert SAM file to fastq file 
+perl ../../../code/2.3.SAM_unaligned_reads_to_fastq.pl all_short_reads_R1.fastq-mem.sam > "Unaligned_short_reads.fastq"
+
+# Normalise read coverage to 120x
+~/Documents/Coding/Downloaded_Repositories/bbmap/bbnorm.sh in=Unaligned_short_reads.fastq out=all_short_reads_normalised.fastq target=120 min=5
+
+# Run 3 rounds of polishing on the genome
+bash ../../../code/4.0_polish_genome_with_pilon.sh "../3.No_contaminants_V.bombi.contigs.fasta" 1 "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/all_short_reads_normalised.fastq" # round 1
+bash ../../../code/4.0_polish_genome_with_pilon.sh Polish_loop_1.fasta.fasta 2 "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/all_short_reads_normalised.fastq" # round 2
+bash ../../../code/4.0_polish_genome_with_pilon.sh Polish_loop_2.fasta.fasta 3 "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/all_short_reads_normalised.fastq" # round 3
+
+
+
 
 # Align all reads from Sam to the canu assembly
 bash ../../code/2.1.0.FASTQ_to_BAM_using_BWA.sh "${no_bombus_assembly}" "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Sam_short_read_sequences/Sam_combined_short_reads_R1_trimmed.fastq" "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Sam_short_read_sequences/Sam_combined_short_reads_R2_trimmed.fastq" 
@@ -179,6 +206,7 @@ cat ./*.fastq > all_short_reads.fastq
 # Normalise read coverage to 120x
 ~/Documents/Coding/Downloaded_Repositories/bbmap/bbnorm.sh in=all_short_reads.fastq out=all_short_reads_normalised.fastq target=120 min=5
 
+cd '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/8.Filtering/all_orthogroups/my_outputs/Polishing'
 
 ###############################################
 ### Polish genome with short read sequences ###
@@ -222,6 +250,21 @@ perl "../../../code/read_coverage_with_contig_names.pl" "all_short_reads.fastq-m
 
 # Filter reads
 perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s 'Polish_loop_3.fasta.fasta' -l 'contigs_with_less_than_1x_coverage.txt' -p fasta > 'contigs_with_more_than_1x_coverage.fasta'
+
+######################
+### BLAST assembly ###
+######################
+
+# Make reduced file with 150 bases per contig 
+grep ">V_bombi_8.1-3_tig.*_pilon_pilon_pilon" '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/10.SynIma_runs/All_species_vs_1x/Vairimorpha_bombi_8.1-3no1x/Vairimorpha_bombi_8.1-3no1x.genome.fa' -A 5 > 150_bases_per_contig_1x_assembly.fasta
+sed -i "s/--//g" 150_bases_per_contig_1x_assembly.fasta
+sed -i '/^$/d' 150_bases_per_contig_1x_assembly.fasta
+
+# Get unique list of accession IDs with counts 
+awk -F, '{print $2}' 'BLAST_results/20230315_1x_BLAST-Alignment-HitTable.csv' | awk NF | sort | uniq -c > Accession_IDS
+Tidy_IDs=`awk '$0 !~ /uniq_/' ${gene_cluster_summary} | awk NF | awk '{print $1}' | sort | uniq `
+
+grep "Query #" 'BLAST_results/20230315_1x_BLAST-Alignment.txt'
 
 
 ##############################################################################
@@ -288,6 +331,8 @@ grep -f "unique_matched_contig_IDs.txt" "braker.gtf" > Vairimorpha_bombi_8.1-3_m
 #BuildDatabase -name nt_database_RepeatModeler -engine ncbi -dir '/media/vlb19/Expansion/reference_sequences/NCBI_nt_database' 
 
 # Run RepeatModeler
+BuildDatabase -name V_bombi '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/5.RepeatMasked_Vairimorpha_bombi_8.1-3/All_reads_filtered/Polish_loop_3.fasta.fasta'
+RepeatModeler -database V_bombi -pa 36 -LTRStruct > out.log
 #RepeatModeler -database nt_database_RepeatModeler '/home/vlb19/Documents/Coding/2022_Vairimorpha_Genome/results_Vairimorpha_bombi_8.1-3/7.Vairimorpha_bombi_8.1-3_Pilon_Polish/Pilon_polished_assembly.fa.fasta' -noisy -pa 10 -LTRStruct -poly -html
 # -database: prefix name of the database that is used in the BuildDatabase function
 # -pa: number of threads
