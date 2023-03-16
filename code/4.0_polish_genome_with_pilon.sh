@@ -19,10 +19,11 @@ polishing_round="$2"
 short_reads=$3
 
 # Index the genome and perform short read mapping
-bash ../../../code/2.1.0.FASTQ_to_BAM_using_BWA.sh ${assembly_dir} ${short_reads} unpaired
+bash ../../../../../code/2.1.0.FASTQ_to_BAM_using_BWA.sh ${assembly_dir} ${short_reads} unpaired
 
 # Run Pilon using max memory available
-pilon --genome ${assembly_dir} --unpaired $short_reads-mem.sorted.bam --output "Polish_loop_${polishing_round}.fasta" --verbose --vcf --variant --changes --fix all --chunksize 30000
+pilon --genome ${assembly_dir} --unpaired $short_reads-mem.sorted.bam --output "Polish_loop_${polishing_round}" --vcf --variant --changes --fix all --chunksize 30000 --verbose
+
 
 ############################
 ### Generate window plot ###

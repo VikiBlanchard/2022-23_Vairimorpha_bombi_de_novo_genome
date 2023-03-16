@@ -67,7 +67,7 @@ mv "results_${isolate}/1.${isolate}_high_qual_reads/${isolate}_high_qual_reads.f
 perl code/2.2.SAM_unaligned_reads_to_fasta.pl "results_${isolate}/2.align_reads_to_Bombus_terrestris/${isolate}_high_qual_reads.fastq-mem.sam" > "results_${isolate}/2.align_reads_to_Bombus_terrestris/${isolate}_unaligned_high_qual_reads.fasta" 
 
 # Convert SAM file to fastq file 
-perl code/2.3.SAM_unaligned_reads_to_fastq.pl "results_${isolate}/2.align_reads_to_Bombus_terrestris/${isolate}_high_qual_reads.fastq-mem.sam" > "results_${isolate}/2.align_reads_to_Bombus_terrestris/${isolate}_unaligned_high_qual_reads.fastq" 
+perl code/2.2.SAM_unaligned_reads_to_fastq.pl "results_${isolate}/2.align_reads_to_Bombus_terrestris/${isolate}_high_qual_reads.fastq-mem.sam" > "results_${isolate}/2.align_reads_to_Bombus_terrestris/${isolate}_unaligned_high_qual_reads.fastq" 
 
 
 #######################
@@ -175,65 +175,18 @@ cat Sam_combined_short_reads_R2_trimmed.fastq >> all_short_reads_R2.fastq
 bash ../../../code/2.1.0.FASTQ_to_BAM_using_BWA.sh '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/8.Filtering/all_orthogroups/my_outputs/3.No_contaminants_V.bombi.contigs.fasta' all_short_reads_R1.fastq all_short_reads_R2.fastq
 
 # Convert SAM file to fastq file 
-perl ../../../code/2.3.SAM_unaligned_reads_to_fastq.pl all_short_reads_R1.fastq-mem.sam > "Unaligned_short_reads.fastq"
+perl ../../../code/2.3.SAM_aligned_reads_to_fastq.pl all_short_reads_R1.fastq-mem.sam > "aligned_short_reads.fastq"
 
 # Normalise read coverage to 120x
-~/Documents/Coding/Downloaded_Repositories/bbmap/bbnorm.sh in=Unaligned_short_reads.fastq out=all_short_reads_normalised.fastq target=120 min=5
+~/Documents/Coding/Downloaded_Repositories/bbmap/bbnorm.sh in=aligned_short_reads.fastq out=all_short_reads_normalised.fastq target=120 min=5
 
-# Run 3 rounds of polishing on the genome
-bash ../../../code/4.0_polish_genome_with_pilon.sh "../3.No_contaminants_V.bombi.contigs.fasta" 1 "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/all_short_reads_normalised.fastq" # round 1
-bash ../../../code/4.0_polish_genome_with_pilon.sh Polish_loop_1.fasta.fasta 2 "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/all_short_reads_normalised.fastq" # round 2
-bash ../../../code/4.0_polish_genome_with_pilon.sh Polish_loop_2.fasta.fasta 3 "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/all_short_reads_normalised.fastq" # round 3
-
-
-
-
-# Align all reads from Sam to the canu assembly
-bash ../../code/2.1.0.FASTQ_to_BAM_using_BWA.sh "${no_bombus_assembly}" "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Sam_short_read_sequences/Sam_combined_short_reads_R1_trimmed.fastq" "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Sam_short_read_sequences/Sam_combined_short_reads_R2_trimmed.fastq" 
-
-# Convert SAM file to fastq file 
-perl ../../code/2.3.SAM_unaligned_reads_to_fastq.pl "Sam_short_read_sequences/Sam_combined_short_reads_R1_trimmed.fastq-mem.sam" > "Unaligned_Sam_short_reads.fastq"
-
-# Align all Novogene reads to the canu assembly
-bash ../../code/2.1.0.FASTQ_to_BAM_using_BWA.sh "${no_bombus_assembly}" "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Novogene_seqs/Novogene_combined_short_reads_R1_trimmed.fastq" "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Short_read_prep/Novogene_seqs/Novogene_combined_short_reads_R2_trimmed.fastq" 
-
-# Convert SAM file to fastq file 
-perl ../../code/2.3.SAM_aligned_reads_to_fastq.pl "Novogene_seqs/Novogene_combined_short_reads_R1_trimmed.fastq-mem.sam" > "Aligned_Novogene_short_reads.fastq"
-
-# Combine all reads
-cat ./*.fastq > all_short_reads.fastq
-
-# Normalise read coverage to 120x
-~/Documents/Coding/Downloaded_Repositories/bbmap/bbnorm.sh in=all_short_reads.fastq out=all_short_reads_normalised.fastq target=120 min=5
-
+### Polish assembly
 cd '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/8.Filtering/all_orthogroups/my_outputs/Polishing'
 
-###############################################
-### Polish genome with short read sequences ###
-###############################################
-cd "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3"
-
-# Change into appropriate directory 
-cd Novogene_reads_filtered 
-
-# Copy filtered file over 
-cp ../../Short_read_prep/Aligned_Novogene_short_reads.fastq ./Aligned_Novogene_short_reads.fastq
-
 # Run 3 rounds of polishing on the genome
-bash ../../../code/4.0_polish_genome_with_pilon.sh ${no_bombus_assembly} 1 ../Short_read_prep/all_short_reads.fastq # round 1
-bash ../../../code/4.0_polish_genome_with_pilon.sh Polish_loop_1.fasta.fasta 2 ../Short_read_prep/all_short_reads.fastq # round 2
-bash ../../../code/4.0_polish_genome_with_pilon.sh Polish_loop_2.fasta.fasta 3 ../Short_read_prep/all_short_reads.fastq # round 3
-
-# Change into appropriate directory 
-cd cd ../Sam_reads_filtered/
-
-# Copy filtered file over 
-cp ../../Short_read_prep/Aligned_Sam_short_reads.fastq ./Aligned_Sam_short_reads.fastq
-
-# Run 3 rounds of polishing on the genome
-bash ../../../code/4.0_polish_genome_with_pilon.sh ${no_bombus_assembly} 1 Aligned_Sam_short_reads.fastq # round 1
-bash ../../../code/4.0_polish_genome_with_pilon.sh Polish_loop_1.fasta.fasta 2 Aligned_Sam_short_reads.fastq # round 2
-bash ../../../code/4.0_polish_genome_with_pilon.sh Polish_loop_1.fasta.fasta 3 Aligned_Sam_short_reads.fastq # round 3
+bash ../../../../../code/4.0_polish_genome_with_pilon.sh "../3.No_contaminants_V.bombi.contigs.fasta" 1 "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/all_short_reads_normalised.fastq" # round 1
+bash ../../../../../code/4.0_polish_genome_with_pilon.sh Polish_loop_1.fasta 2 "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/all_short_reads_normalised.fastq" # round 2
+bash ../../../../../code/4.0_polish_genome_with_pilon.sh Polish_loop_2.fasta 3 "/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/all_short_reads_normalised.fastq" # round 3
 
 
 ###################################################
@@ -243,80 +196,43 @@ bash ../../../code/4.0_polish_genome_with_pilon.sh Polish_loop_1.fasta.fasta 3 A
 # mkdir "results_Vairimorpha_bombi_8.1-3/8.Tigs_with_more_than_1x_coverage"
 
 # Generate file with depth per read
-perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/SAM_how_many_reads_align.pl' -s 'all_short_reads.fastq-mem.sam'
+perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/SAM_how_many_reads_align.pl' -s '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/all_short_reads_normalised.fastq-mem.sam'
 
 # Generate file with tig names with less than 1x coverage 
-perl "../../../code/read_coverage_with_contig_names.pl" "all_short_reads.fastq-mem.sam-reads-aligned-to-which-contigs3.tab" 1 > "contigs_with_less_than_1x_coverage.txt"
+perl "../../../../../code/read_coverage_with_contig_names.pl" '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Contamination_filtered_short_read_prep/all_short_reads_normalised.fastq-mem.sam-reads-aligned-to-which-contigs3.tab' 1 > "contigs_with_less_than_1x_coverage.txt"
 
 # Filter reads
-perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s 'Polish_loop_3.fasta.fasta' -l 'contigs_with_less_than_1x_coverage.txt' -p fasta > 'contigs_with_more_than_1x_coverage.fasta'
+perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s 'Polish_loop_3.fasta' -l 'contigs_with_less_than_1x_coverage.txt' -p fasta > 'contigs_with_more_than_1x_coverage.fasta'
+
+
+####################################
+### Re-order and re-name contigs ###
+####################################
+
+# Re-order contigs 
+perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s 'contigs_with_more_than_1x_coverage.fasta' -j b -p fasta > 'No_contamination-reordered.fasta'
+
+# Make list of contigs
+perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s 'No_contamination-reordered.fasta' -h s -g n | cut -f 1 > 'contigs.tab' 
+
+# Add new contig ID prefix 
+sed -e 's/$/\tV_bombi_8.1-3_tig0/' -i 'contigs.tab' 
+
+# Add line number new contig ID prefix 
+perl '../../../../../code/quicklinenumber.pl' 'contigs.tab' > contigs-new.tab
+
+# Rename contigs
+perl ../../../../../code/FASTA-rename-according-to-file.pl 'No_contamination-reordered.fasta' contigs-new.tab  > 'No_contamination-reordered-renamed.fasta'
+
 
 ######################
 ### BLAST assembly ###
 ######################
 
 # Make reduced file with 150 bases per contig 
-grep ">V_bombi_8.1-3_tig.*_pilon_pilon_pilon" '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/10.SynIma_runs/All_species_vs_1x/Vairimorpha_bombi_8.1-3no1x/Vairimorpha_bombi_8.1-3no1x.genome.fa' -A 5 > 150_bases_per_contig_1x_assembly.fasta
+grep ">V_bombi_8.1-3_tig" 'No_contamination-reordered-renamed.fasta' -A 5 > 150_bases_per_contig_1x_assembly.fasta
 sed -i "s/--//g" 150_bases_per_contig_1x_assembly.fasta
 sed -i '/^$/d' 150_bases_per_contig_1x_assembly.fasta
-
-# Get unique list of accession IDs with counts 
-awk -F, '{print $2}' 'BLAST_results/20230315_1x_BLAST-Alignment-HitTable.csv' | awk NF | sort | uniq -c > Accession_IDS
-Tidy_IDs=`awk '$0 !~ /uniq_/' ${gene_cluster_summary} | awk NF | awk '{print $1}' | sort | uniq `
-
-grep "Query #" 'BLAST_results/20230315_1x_BLAST-Alignment.txt'
-
-
-##############################################################################
-### Filter only contigs with matched sequences in V. apis and/or V.ceranae ###
-##############################################################################
-
-# Get list of contigs with matches in V. apis and/or V. ceranae 
-sed -nr 's/.*Vairimorpha_bombi_8.1-3no1x\t(.*)/\1/p' 'Repo_spec.txt.dagchainer.aligncoords' > matched_contig_IDs.txt
-sed -i "s/Vairimorpha_bombi_8.1-3no1x.*/ /g" matched_contig_IDs.txt
-
-# Get unique contig IDs with matches
-cat matched_contig_IDs.txt  | sort | uniq > unique_matched_contig_IDs.txt
-
-# Get list of contigs in assembly 
-sed -nr 's/>(.*)/\1/p' 'Vairimorpha_bombi_8.1-3no1x/Vairimorpha_bombi_8.1-3no1x.genome.fa' | sort > all_contigs.txt
-
-# Get list of contigs with no matches 
-join -v1 -v2 unique_matched_contig_IDs.txt all_contigs.txt > contigs_with_no_matches.txt
-
-# Remove contigs with no matches 
-perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s 'Vairimorpha_bombi_8.1-3no1x/Vairimorpha_bombi_8.1-3no1x.genome.fa' -l 'contigs_with_no_matches.txt' -p fasta > '../../8.Filtering/Contigs_with_sister_orthologs_only/Ortholog-match_filtered_assembly.fasta' 
-
-# Remove contigs with no matches from braker file
-grep -f "unique_matched_contig_IDs.txt" "braker.gtf" > Vairimorpha_bombi_8.1-3_sister_orthologs.gtf
-
-
-#################################################################
-### Filter only contigs with orthologs in other microsporidia ###
-#################################################################
-
-# Get list of contigs with matches in any other microsporidia 
-sed -nr 's/.*Vairimorpha_bombi_8.1-3no1x\t(.*)/\1/p' 'Repo_spec.txt.dagchainer.aligncoords' > matched_contig_IDs.txt
-sed -i "s/Vairimorpha_bombi_8.1-3no1x.*/ /g" matched_contig_IDs.txt
-
-# Get unique contig IDs with matches
-cat matched_contig_IDs.txt  | sort | uniq > unique_matched_contig_IDs.txt
-
-# Get list of contigs in assembly 
-sed -nr 's/>(.*)/\1/p' 'Vairimorpha_bombi_8.1-3no1x/Vairimorpha_bombi_8.1-3no1x.genome.fa' | sort > all_contigs.txt
-
-# Get list of contigs with no matches 
-join -v1 -v2 unique_matched_contig_IDs.txt all_contigs.txt > contigs_with_no_matches.txt
-
-# Remove contigs with no matches 
-perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s 'Vairimorpha_bombi_8.1-3no1x/Vairimorpha_bombi_8.1-3no1x.genome.fa' -l 'contigs_with_no_matches.txt' -p fasta > '../../8.Filtering/Contigs_with_microsporidia_orthologs_only/Microsporidia_ortholog-match_filtered_assembly.fasta' 
-
-# Remove spaces from contig ID file 
-sed -i 's/ //g' "unique_matched_contig_IDs.txt"
-sed -i 's/\t//g' "unique_matched_contig_IDs.txt"
-
-# Remove contigs with no matches from braker file
-grep -f "unique_matched_contig_IDs.txt" "braker.gtf" > Vairimorpha_bombi_8.1-3_microsporidia_orthologs.gtf
 
 
 ###########################
@@ -331,7 +247,7 @@ grep -f "unique_matched_contig_IDs.txt" "braker.gtf" > Vairimorpha_bombi_8.1-3_m
 #BuildDatabase -name nt_database_RepeatModeler -engine ncbi -dir '/media/vlb19/Expansion/reference_sequences/NCBI_nt_database' 
 
 # Run RepeatModeler
-BuildDatabase -name V_bombi '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/5.RepeatMasked_Vairimorpha_bombi_8.1-3/All_reads_filtered/Polish_loop_3.fasta.fasta'
+BuildDatabase -name V_bombi ../Polishing/contigs_with_more_than_1x_coverage.fasta
 RepeatModeler -database V_bombi -pa 36 -LTRStruct > out.log
 #RepeatModeler -database nt_database_RepeatModeler '/home/vlb19/Documents/Coding/2022_Vairimorpha_Genome/results_Vairimorpha_bombi_8.1-3/7.Vairimorpha_bombi_8.1-3_Pilon_Polish/Pilon_polished_assembly.fa.fasta' -noisy -pa 10 -LTRStruct -poly -html
 # -database: prefix name of the database that is used in the BuildDatabase function
@@ -344,17 +260,20 @@ RepeatModeler -database V_bombi -pa 36 -LTRStruct > out.log
 # Repeatmask the genome with fungal sequences
 #RepeatMasker -species Nosema_ceranae -pa 8 -dir results_${isolate}/RepeatMask -gff -e ncbi -s '/home/vlb19/Documents/Coding/2022_Vairimorpha_Genome/results_Vairimorpha_bombi_8.1-3/3.No_Ralstonia_Vairimorpha_bombi_8.1-3_assembly/3.No_Ralstonia_Vairimorpha_bombi_8.1-3.contigs.fasta'
 
+mkdir RepeatMasker_RM_lib
+mkdir fungi
+mkdir bacteria
+mkdir viruses
+
 # Repeat masking with RepeatMasker using repeats were found by RepeatModeler
 #RepeatMasker -lib CLR-families.fa -s -parallel 10 -xsmall -alignments CLR_scaffolst
+RepeatMasker -lib V_bombi-families.fa -s -parallel 10 -dir RepeatMasker_out ../Polishing/contigs_with_more_than_1x_coverage.fasta
 
 # Repeatmask the genome with fungal, viral, and bacterial sequences
-RepeatMasker -species fungi -pa 8 -dir ./ -gff -e ncbi -s 'Polish_loop_3.fasta.fasta'
-RepeatMasker -species bacteria -pa 8 -dir ./ -gff -e ncbi -s 'Polish_loop_3.fasta.fasta.masked'
-RepeatMasker -species viruses -pa 8 -dir ./ -gff -e ncbi -s 'Polish_loop_3.fasta.fasta.masked.masked'
+RepeatMasker -species fungi -pa 8 -dir fungi -gff -e ncbi -s 'RepeatMasker_RM_lib/contigs_with_more_than_1x_coverage.fasta.masked'
+RepeatMasker -species bacteria -pa 8 -dir bacteria -gff -e ncbi -s 'fungi/contigs_with_more_than_1x_coverage.fasta.masked.masked'
+RepeatMasker -species viruses -pa 8 -dir viruses -gff -e ncbi -s 'fungi/contigs_with_more_than_1x_coverage.fasta.masked.masked'
 
-RepeatMasker -species fungi -pa 8 -dir ./ -gff -e ncbi -s 'contigs_with_more_than_1x_coverage.fasta'
-RepeatMasker -species bacteria -pa 8 -dir ./ -gff -e ncbi -s 'contigs_with_more_than_1x_coverage.fasta.masked'
-RepeatMasker -species viruses -pa 8 -dir ./ -gff -e ncbi -s 'contigs_with_more_than_1x_coverage.fasta.masked.masked'
 
 #######################
 ### Annotate genome ###
@@ -363,7 +282,7 @@ RepeatMasker -species viruses -pa 8 -dir ./ -gff -e ncbi -s 'contigs_with_more_t
 # Run Braker2 on masked genome
 braker.pl --genome="Polish_loop_3.fasta.fasta.masked.masked" --esmode --softmasking --cores 4 --AUGUSTUS_BIN_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/bin --AUGUSTUS_SCRIPTS_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/scripts
 
-braker.pl --genome="Ortholog-match_filtered_assembly.fasta" --esmode --softmasking --cores 4 --AUGUSTUS_BIN_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/bin --AUGUSTUS_SCRIPTS_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/scripts 
+braker.pl --genome='/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/8.Filtering/all_orthogroups/my_outputs/RepeatMask/fungi/contigs_with_more_than_1x_coverage.fasta.masked.masked' --esmode --softmasking --cores 4 --AUGUSTUS_BIN_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/bin --AUGUSTUS_SCRIPTS_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/scripts 
 
 # additional option "--fungus" is available
 
@@ -377,7 +296,8 @@ cd "results_Vairimorpha_bombi_8.1-3/9.SynIma_files_Vairimorpha_bombi_8.1-3"
 # Generate gff3 from gtf
 cat 'braker.gtf' | /home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/scripts/gtf2gff.pl --gff3 --out=braker.gff3 
 # Remove braker sequence prediction notes
-sed -i 's/_len=.*=no//g' braker.gff3 
+sed -i 's/file/V_bombi/g' braker.gff3
+sed -i 's/tig/V_bombi_contig/g' braker.gff3
 
 # Remove Augustus and GeneMark additions
 sed -i 's/AUGUSTUS/Vairimorpha_bombi_8_1/g' braker.gff3
@@ -388,17 +308,14 @@ awk -i inplace '!/start_codon/' braker.gff3
 awk -i inplace '!/stop_codon/' braker.gff3
 
 # Generate .CDS file using gffread  
-gffread -g 'Polish_loop_3.fasta.fasta.masked.masked' -x ${isolate}.annotation.cds braker.gff3
-gffread -g Vairimorpha_bombi_8.1-3_microsporidia_orthologs.fasta  -x ${isolate}.annotation.cds braker.gff3
+gffread -g 'contigs_with_more_than_1x_coverage.fasta.masked.masked' -x ${isolate}.annotation.cds braker.gff3
 
 # Generate protein.fa file using gffread  
-gffread -g 'Polish_loop_3.fasta.fasta.masked.masked' -y ${isolate}.annotation.pep braker.gff3 
-gffread -g Vairimorpha_bombi_8.1-3_microsporidia_orthologs.fasta  -y ${isolate}.annotation.pep braker.gff3
+gffread -g 'contigs_with_more_than_1x_coverage.fasta.masked.masked' -y ${isolate}.annotation.pep braker.gff3 
 
 # Rename files for Synima
-mv Polish_loop_3.fasta.fasta.masked.masked ${isolate}.genome.fa
+mv contigs_with_more_than_1x_coverage.fasta.masked.masked ${isolate}.genome.fa
 mv braker.gff3 ${isolate}.annotation.gff3 # gff3
-mv Ortholog-match_filtered_assembly.fasta  ${isolate}.genome.fa
 
 
 ##################
@@ -426,7 +343,7 @@ perl ../util/Blast_all_vs_all_repo_to_OrthoMCL.pl -r ./Repo_spec.txt
 perl ../util/Orthologs_to_summary.pl -o all_orthomcl.out
 perl ../util/DAGchainer_from_gene_clusters.pl -r ./Repo_spec.txt \
              -c GENE_CLUSTERS_SUMMARIES.OMCL/GENE_CLUSTERS_SUMMARIES.clusters
-perl ../SynIma.pl -a Repo_spec.txt.dagchainer.aligncoords -b Repo_spec.txt.dagchainer.aligncoords.spans -z y -c g
+perl ../SynIma.pl -a Repo_spec.txt.dagchainer.aligncoords -b Repo_spec.txt.dagchainer.aligncoords.spans -z y -c Synima_plot
 
 
 ##############################################
