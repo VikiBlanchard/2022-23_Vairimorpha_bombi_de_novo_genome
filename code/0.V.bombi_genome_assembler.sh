@@ -317,6 +317,14 @@ gffread -g 'contigs_with_more_than_1x_coverage.fasta.masked.masked' -y ${isolate
 mv contigs_with_more_than_1x_coverage.fasta.masked.masked ${isolate}.genome.fa
 mv braker.gff3 ${isolate}.annotation.gff3 # gff3
 
+##########################
+### Quality assessment ###
+##########################
+conda activate canu_assembly
+# Assess assembly quality with Quast
+quast.py Vairimorpha_bombi.genome.fa -o ./
+conda deactivate
+
 
 ##################
 ### Run SynIma ###
@@ -418,3 +426,11 @@ conda deactivate
 ##################################
 
 # run tree_file_maker.sh 
+
+
+###########################
+### Functional analysis ###
+###########################
+
+# Run signalP4
+perl  '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/Signalp4.1_RF_compatability.pl' '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/7.SynIma_files_Vairimorpha_bombi_8.1-3/Contamination_filtered/Vairimorpha_bombi/Vairimorpha_bombi.annotation.pep' -f all > SignalP4_all.tab
