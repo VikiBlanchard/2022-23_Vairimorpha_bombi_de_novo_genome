@@ -247,15 +247,8 @@ sed -i '/^$/d' 150_bases_per_contig_1x_assembly.fasta
 #BuildDatabase -name nt_database_RepeatModeler -engine ncbi -dir '/media/vlb19/Expansion/reference_sequences/NCBI_nt_database' 
 
 # Run RepeatModeler
-BuildDatabase -name V_bombi ../Polishing/contigs_with_more_than_1x_coverage.fasta
-RepeatModeler -database V_bombi -pa 36 -LTRStruct > out.log
-#RepeatModeler -database nt_database_RepeatModeler '/home/vlb19/Documents/Coding/2022_Vairimorpha_Genome/results_Vairimorpha_bombi_8.1-3/7.Vairimorpha_bombi_8.1-3_Pilon_Polish/Pilon_polished_assembly.fa.fasta' -noisy -pa 10 -LTRStruct -poly -html
-# -database: prefix name of the database that is used in the BuildDatabase function
-# -pa: number of threads
-# -LTRStruct: runs the LTR structural discovery pipeline for discovering LTR retrotransposons
-# -noisy: verbose option 
-# -poly: reports repeats that may be polymorphic into file.poly 
-# -html: makes additional output file in html format 
+BuildDatabase -name V_bombi 'VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.fa'
+RepeatModeler -database V_bombi -pa 1 > out.log
 
 # Repeatmask the genome with fungal sequences
 #RepeatMasker -species Nosema_ceranae -pa 8 -dir results_${isolate}/RepeatMask -gff -e ncbi -s '/home/vlb19/Documents/Coding/2022_Vairimorpha_Genome/results_Vairimorpha_bombi_8.1-3/3.No_Ralstonia_Vairimorpha_bombi_8.1-3_assembly/3.No_Ralstonia_Vairimorpha_bombi_8.1-3.contigs.fasta'
@@ -267,10 +260,10 @@ mkdir viruses
 
 # Repeat masking with RepeatMasker using repeats were found by RepeatModeler
 #RepeatMasker -lib CLR-families.fa -s -parallel 10 -xsmall -alignments CLR_scaffolst
-RepeatMasker -lib V_bombi-families.fa -s -parallel 10 -dir RepeatMasker_out ../Polishing/contigs_with_more_than_1x_coverage.fasta
+RepeatMasker -lib V_bombi-families.fa -s -parallel 10 -dir RepeatMasker_out 'VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.fa'
 
 # Repeatmask the genome with fungal, viral, and bacterial sequences
-RepeatMasker -species fungi -pa 8 -dir fungi -gff -e ncbi -s 'RepeatMasker_RM_lib/contigs_with_more_than_1x_coverage.fasta.masked'
+RepeatMasker -species fungi -pa 8 -dir fungi -gff -e ncbi -s '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/13.ncbi_submission_files/RepeatMasker_out/VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.fa.masked'
 RepeatMasker -species bacteria -pa 8 -dir bacteria -gff -e ncbi -s 'fungi/contigs_with_more_than_1x_coverage.fasta.masked.masked'
 RepeatMasker -species viruses -pa 8 -dir viruses -gff -e ncbi -s 'fungi/contigs_with_more_than_1x_coverage.fasta.masked.masked'
 
@@ -282,7 +275,7 @@ RepeatMasker -species viruses -pa 8 -dir viruses -gff -e ncbi -s 'fungi/contigs_
 # Run Braker2 on masked genome
 braker.pl --genome="Polish_loop_3.fasta.fasta.masked.masked" --esmode --softmasking --cores 4 --AUGUSTUS_BIN_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/bin --AUGUSTUS_SCRIPTS_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/scripts
 
-braker.pl --genome='/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/8.Filtering/all_orthogroups/my_outputs/RepeatMask/fungi/contigs_with_more_than_1x_coverage.fasta.masked.masked' --esmode --softmasking --cores 4 --AUGUSTUS_BIN_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/bin --AUGUSTUS_SCRIPTS_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/scripts 
+braker.pl --genome='/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/13.ncbi_submission_files/RepeatMasker_out/VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.fa.masked' --esmode --softmasking --cores 4 --AUGUSTUS_BIN_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/bin --AUGUSTUS_SCRIPTS_PATH=/home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/scripts 
 
 # additional option "--fungus" is available
 
@@ -294,11 +287,12 @@ mkdir results_Vairimorpha_bombi_8.1-3/9.SynIma_files_Vairimorpha_bombi_8.1-3
 cd "results_Vairimorpha_bombi_8.1-3/9.SynIma_files_Vairimorpha_bombi_8.1-3"
 
 # Generate gff3 from gtf
-cat 'braker.gtf' | /home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/scripts/gtf2gff.pl --gff3 --out=braker.gff3 
+cat 'braker/braker.gtf' | /home/vlb19/Documents/Coding/Downloaded_Repositories/Augustus/scripts/gtf2gff.pl --gff3 --out=braker.gff3 
+
 # Remove braker sequence prediction notes
 sed -i 's/file/V_bombi/g' braker.gff3
-sed -i 's/tig/V_bombi_contig/g' braker.gff3
 
+sed -i 's/RFAMSEARCH/Vairimorpha_bombi_8_1/g' '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/13.ncbi_submission_files/ncbi_files/VABONEW_RFAMSEARCH_1.gff3'
 # Remove Augustus and GeneMark additions
 sed -i 's/AUGUSTUS/Vairimorpha_bombi_8_1/g' braker.gff3
 sed -i 's/GeneMark.hmm3/Vairimorpha_bombi_8_1/g' braker.gff3
@@ -308,14 +302,17 @@ awk -i inplace '!/start_codon/' braker.gff3
 awk -i inplace '!/stop_codon/' braker.gff3
 
 # Generate .CDS file using gffread  
-gffread -g 'contigs_with_more_than_1x_coverage.fasta.masked.masked' -x ${isolate}.annotation.cds braker.gff3
+gffread -g 'VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.fa' -x ${isolate}.annotation.cds braker.gff3
 
 # Generate protein.fa file using gffread  
-gffread -g 'contigs_with_more_than_1x_coverage.fasta.masked.masked' -y ${isolate}.annotation.pep braker.gff3 
+gffread -g 'VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.fa' -y ${isolate}.annotation.pep braker.gff3 
 
 # Rename files for Synima
-mv contigs_with_more_than_1x_coverage.fasta.masked.masked ${isolate}.genome.fa
+mv VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.fa ${isolate}.genome.fa
 mv braker.gff3 ${isolate}.annotation.gff3 # gff3
+
+# Generate asn for genbank 
+table2asn -M n -J -c w -euk -t template.sbt -locus-tag-prefix "P3W45" -augustus-fix -i '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/13.ncbi_submission_files/VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.fsa' -f '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/13.ncbi_submission_files/VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.annotation.gff3' -o VABO_genome.sqn -Z -V b 
 
 ##########################
 ### Quality assessment ###
@@ -434,3 +431,12 @@ conda deactivate
 
 # Run signalP4
 perl  '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/Signalp4.1_RF_compatability.pl' '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/7.SynIma_files_Vairimorpha_bombi_8.1-3/Contamination_filtered/Vairimorpha_bombi/Vairimorpha_bombi.annotation.pep' -f all > SignalP4_all.tab
+
+###########################
+# Submit to ncbi
+ascp -i <path/to/key_file> -QT -l100m -k1 -d <path/to/folder/containing files> subasp@upload.ncbi.nlm.nih.gov:uploads/viki.webster.2018_live.rhul.ac.uk_pVMgIAc1
+
+# Nanopore reads
+./ascp -i '/home/vlb19/Downloads/aspera.openssh' -QT -l100m -k1 -d '/media/vlb19/Expansion1/Vairimorpha_bombi_sequences/Combined_fastq_passes' subasp@upload.ncbi.nlm.nih.gov:uploads/viki.webster.2018_live.rhul.ac.uk_pVMgIAc1
+ascp -i <path/to/key_file> -QT -l100m -k1 -d <path/to/folder/containing files> subasp@upload.ncbi.nlm.nih.gov:uploads/viki.webster.2018_live.rhul.ac.uk_pVMgIAc1
+# Illumina reads 

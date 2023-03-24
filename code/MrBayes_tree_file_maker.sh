@@ -1,11 +1,11 @@
 #!/bin/bash 
-## Usage: tree_generator 
+## Usage: MrBayes_tree_generator 
 ##
 ## Options:
 ##   -h, --help    Display this message.
 ##   -n            Dry-run; only show what would be done.
 
-### vlwebster (viki.blanchard.2018@live.rhul.ac.uk)
+### vlwebster (viki.webster.2018@live.rhul.ac.uk)
 
 # Add correctly formatted species names to each sequence in all the pep files
 for pep_file_name in */*.pep; do 
@@ -83,6 +83,7 @@ done
 for alignment in *.afa; do
     trimal -in $alignment -w 3 -gt 0.95 -st 0.01  -fasta -out $(basename $alignment).fa -htmlout $(basename $alignment).html  # generate nexus files for further processing and html files to view the results
 done
+
 # -w = This value establishes the number of columns at each side of a given position that trimAl has to consider when computing some scores, such as gap, conservation or consistency scores, for that position. When a window size is given, trimAl provides the average value of all columns considered.
 # -gt = Sets the limit for an acceptable gap score (The gap score for a column of size n is the fraction of positions in the column without a gap). Columns below this score are deleted from the input alignment
 # -st = Similarity score. Measures similarity value for each column from the alignment using the Mean Distance method (Blosum62 similarity matrix)
@@ -98,6 +99,8 @@ perl ../../../../code/folder_of_fastas_to_cat.pl . > "All_matched_orthologs_acro
 # Run FASTA-parser code from rfarrer to convert the FASTA file into a NEXUS file for MrBayes
 perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s "All_matched_orthologs_across_species.fa" -p nexus -d protein > "All_matched_orthologs_across_species.nexus"
 
+# Run FASTA-parser code from rfarrer to convert the FASTA file into a PHYLIP file for RAxML
+perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s "All_matched_orthologs_across_species.fa" -p phylip -d protein > "All_matched_orthologs_across_species.phylip"
 
 ###################
 ### Run MrBayes ### 
@@ -109,6 +112,14 @@ mcmc ngen = 1000000 samplefreq=10
 # wait till finished then run: 
 sump burninfrac=0.25
 sumt burninfrac=0.25
+
+#################
+### Run RAxML ###
+#################
+
+raxmlHPC -s All_matched_orthologs_across_species.phylip -m PROTGAMMAAUTO -n raxml_tree -p 7487643260
+
+
 
 # open figtree 
 figtree 

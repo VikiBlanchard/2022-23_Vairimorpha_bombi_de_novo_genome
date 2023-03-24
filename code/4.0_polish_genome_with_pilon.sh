@@ -36,4 +36,4 @@ samtools mpileup -f ${assembly_dir} -s $short_reads-mem.sorted.bam -o "Polish_lo
 perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/Windows_for_VCFs_mpileups_or_tabs3.pl' -r ${assembly_dir} -v "Polish_loop_${polishing_round}.fasta.vcf" -p "Polish_loop_${polishing_round}.pileup" -w 1000 -n 140 > 1000_windows-Polish_loop_${polishing_round}-normalised.tab
 
 # Make windows plot
-perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/Windows_dataframe_to_R_figure3.pl' -w 1000_windows-Polish_loop_${polishing_round}-normalised.tab
+perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/Windows_dataframe_to_R_figure3.pl' -w 1000_windows-Polish_loop_${polishing_round}-normalised.tab 
