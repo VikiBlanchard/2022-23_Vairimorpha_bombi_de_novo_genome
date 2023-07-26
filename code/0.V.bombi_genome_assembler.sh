@@ -239,19 +239,11 @@ sed -i '/^$/d' 150_bases_per_contig_1x_assembly.fasta
 ### Softmask the genome ### 
 ###########################
 
-# download a preformatted NCBI BLAST database
-#perl update_blastdb.pl --decompress nt [*]
-
 ### Identify novel repeats in genome assembly
-# format NCBI nt database for RepeatModeler
-#BuildDatabase -name nt_database_RepeatModeler -engine ncbi -dir '/media/vlb19/Expansion/reference_sequences/NCBI_nt_database' 
 
 # Run RepeatModeler
-BuildDatabase -name V_bombi 'VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.fa'
-RepeatModeler -database V_bombi -pa 1 > out.log
-
-# Repeatmask the genome with fungal sequences
-#RepeatMasker -species Nosema_ceranae -pa 8 -dir results_${isolate}/RepeatMask -gff -e ncbi -s '/home/vlb19/Documents/Coding/2022_Vairimorpha_Genome/results_Vairimorpha_bombi_8.1-3/3.No_Ralstonia_Vairimorpha_bombi_8.1-3_assembly/3.No_Ralstonia_Vairimorpha_bombi_8.1-3.contigs.fasta'
+BuildDatabase -name V_bombi '../Vairimorpha_bombi_VR1.genome.fa'
+RepeatModeler -database V_bombi -pa 1 -LTRStruct > out.log
 
 mkdir RepeatMasker_RM_lib
 mkdir fungi
@@ -259,14 +251,42 @@ mkdir bacteria
 mkdir viruses
 
 # Repeat masking with RepeatMasker using repeats were found by RepeatModeler
-#RepeatMasker -lib CLR-families.fa -s -parallel 10 -xsmall -alignments CLR_scaffolst
-RepeatMasker -lib V_bombi-families.fa -s -parallel 10 -dir RepeatMasker_out 'VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.fa'
+RepeatMasker -lib V_bombi-families.fa -s -parallel 10 -dir RepeatMasker_out '../Vairimorpha_bombi_VR1.genome.fa'
 
 # Repeatmask the genome with fungal, viral, and bacterial sequences
-RepeatMasker -species fungi -pa 8 -dir fungi -gff -e ncbi -s '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/13.ncbi_submission_files/RepeatMasker_out/VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.fa.masked'
-RepeatMasker -species bacteria -pa 8 -dir bacteria -gff -e ncbi -s 'fungi/contigs_with_more_than_1x_coverage.fasta.masked.masked'
-RepeatMasker -species viruses -pa 8 -dir viruses -gff -e ncbi -s 'fungi/contigs_with_more_than_1x_coverage.fasta.masked.masked'
+RepeatMasker -species fungi -pa 8 -dir fungi -gff -e ncbi -s 'RepeatMasker_out/Vairimorpha_bombi_VR1.genome.fa.masked'
+RepeatMasker -species bacteria -pa 8 -dir bacteria -gff -e ncbi -s 'RepeatMasker_out/Vairimorpha_bombi_VR1.genome.fa.masked'
+RepeatMasker -species viruses -pa 8 -dir viruses -gff -e ncbi -s 'fungi/Vairimorpha_bombi_VR1.genome.fa.masked.masked'
 
+##########################################################################
+### Verify external information on repeat content of other Vairimorpha ###
+##########################################################################
+
+# Navigate into directory of genomes first
+
+# Check repeat content of V apis
+BuildDatabase -name V_apis '../Nosema_apis_BRL_01.genome.fa'
+RepeatModeler -database V_apis -pa 1 -LTRStruct > out.log
+mkdir RepeatMasker_RM_lib
+mkdir fungi
+mkdir bacteria
+mkdir viruses
+RepeatMasker -lib V_apis-families.fa -s -parallel 10 -dir RepeatMasker_out '../Nosema_apis_BRL_01.genome.fa'
+RepeatMasker -species fungi -pa 8 -dir fungi -gff -e ncbi -s 'RepeatMasker_out/Nosema_apis_BRL_01.genome.fa.masked'
+RepeatMasker -species bacteria -pa 8 -dir bacteria -gff -e ncbi -s 'RepeatMasker_out/Nosema_apis_BRL_01.genome.fa.masked'
+RepeatMasker -species viruses -pa 8 -dir viruses -gff -e ncbi -s 'fungi/Nosema_apis_BRL_01.genome.fa.masked'
+
+# Check repeat content of V ceranae
+BuildDatabase -name V_ceranae '../NceranaeBRL.genome.fa'
+RepeatModeler -database V_ceranae -pa 1 -LTRStruct > out.log
+mkdir RepeatMasker_RM_lib
+mkdir fungi
+mkdir bacteria
+mkdir viruses
+RepeatMasker -lib V_ceranae-families.fa -s -parallel 10 -dir RepeatMasker_out '../NceranaeBRL.genome.fa'
+RepeatMasker -species fungi -pa 8 -dir fungi -gff -e ncbi -s 'RepeatMasker_out/NceranaeBRL.genome.fa.masked'
+RepeatMasker -species bacteria -pa 8 -dir bacteria -gff -e ncbi -s 'RepeatMasker_out/NceranaeBRL.genome.fa.masked'
+RepeatMasker -species viruses -pa 8 -dir viruses -gff -e ncbi -s 'RepeatMasker_out/NceranaeBRL.genome.fa.masked'
 
 #######################
 ### Annotate genome ###
@@ -319,7 +339,7 @@ table2asn -M n -J -c w -euk -t template.sbt -locus-tag-prefix "P3W45" -augustus-
 ##########################
 conda activate canu_assembly
 # Assess assembly quality with Quast
-quast.py Vairimorpha_bombi.genome.fa -o ./
+quast.py Vairimorpha_bombi_VR1.genome.fa -o ./Quast
 conda deactivate
 
 
@@ -348,14 +368,14 @@ perl ../util/Blast_all_vs_all_repo_to_OrthoMCL.pl -r ./Repo_spec.txt
 perl ../util/Orthologs_to_summary.pl -o all_orthomcl.out
 perl ../util/DAGchainer_from_gene_clusters.pl -r ./Repo_spec.txt \
              -c GENE_CLUSTERS_SUMMARIES.OMCL/GENE_CLUSTERS_SUMMARIES.clusters
-perl ../SynIma.pl -a Repo_spec.txt.dagchainer.aligncoords -b Repo_spec.txt.dagchainer.aligncoords.spans -z y -c Synima_plot
+perl ../SynIma.pl -a Repo_spec.txt.dagchainer.aligncoords -b Repo_spec.txt.dagchainer.aligncoords.spans # -x NceranaeBRL,Vairimorpha_bombi_VR1
 
 
 ##############################################
 ### Run BUSCO analysis on the new assembly ###
 ##############################################
 
-bash code/4.1.0.run_busco_analysis.sh ${isolate} '/home/vlb19/Documents/Coding/2022_Vairimorpha_Genome/results_Vairimorpha_bombi_8.1-3/4.Pilon_polished_Vairimorpha_bombi_8.1-3/Pilon.1.2.4/Pilon_polished_assembly.fasta-reordered-renamed.fasta' "No_bombus"
+bash ../../../code/4.1.0.run_busco_analysis.sh ${isolate} '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/14.Analysis/BUSCO/VABO_genome-reordered-renam-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.genome.fa' "No_bombus"
 
 DataDir="$( echo $(pwd))/Data"
 mkdir busco_results_microsporidia 
@@ -367,7 +387,7 @@ conda activate busco_analysis
 for dir in "$DataDir"/*; do # for each directory in Data
     for file in /"$dir"/"*".pep; do # for each .faa file in each directory
         cd $DataDir/../busco_results_microsporidia # switch into the results directory
-        busco -m proteins -i $file -l microsporidia_odb10 -o "busco_microsporidia_"$(basename -- "$dir") -f # run busco analyis on the protein file
+        busco -m proteins -i $file -l microsporidia_odb10 -o "busco_microsporidia_"$(basename -- "$dir") # run busco analyis on the protein file
     done 
     cd $DataDir/.. # change back to the working directory
 done 
@@ -415,7 +435,7 @@ conda deactivate
 
 conda activate canu_assembly
 # Assess assembly quality with Quast
-quast.py './Vairimorpha_bombi_8.1-3_microsporidia_orthologs/Vairimorpha_bombi_8.1-3_microsporidia_orthologs.fasta' -o ./Vairimorpha_bombi_8.1-3_microsporidia_orthologs_quastplot_report
+quast.py '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/10.SynIma_runs/Nosema_comparisons/VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed/VABO_genome-reordered-renamed-no-Ncontig00000000-fix-final-issues-Ns-at-end-reordered-renamed.genome.fa' -o ./quastplot_report
 conda deactivate
 
 ##################################
@@ -432,11 +452,10 @@ conda deactivate
 # Run signalP4
 perl  '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/Signalp4.1_RF_compatability.pl' '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/7.SynIma_files_Vairimorpha_bombi_8.1-3/Contamination_filtered/Vairimorpha_bombi/Vairimorpha_bombi.annotation.pep' -f all > SignalP4_all.tab
 
-###########################
-# Submit to ncbi
-ascp -i <path/to/key_file> -QT -l100m -k1 -d <path/to/folder/containing files> subasp@upload.ncbi.nlm.nih.gov:uploads/viki.webster.2018_live.rhul.ac.uk_pVMgIAc1
 
-# Nanopore reads
-./ascp -i '/home/vlb19/Downloads/aspera.openssh' -QT -l100m -k1 -d '/media/vlb19/Expansion1/Vairimorpha_bombi_sequences/Combined_fastq_passes' subasp@upload.ncbi.nlm.nih.gov:uploads/viki.webster.2018_live.rhul.ac.uk_pVMgIAc1
-ascp -i <path/to/key_file> -QT -l100m -k1 -d <path/to/folder/containing files> subasp@upload.ncbi.nlm.nih.gov:uploads/viki.webster.2018_live.rhul.ac.uk_pVMgIAc1
-# Illumina reads 
+#########
+
+
+# generate orthologs with annots file
+perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/Ortholog_clusters_to_reduced_wAnnots_format.pl' -c '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Submission5/10.SynIma_runs/All_species_vs_ncbi_submission/GENE_CLUSTERS_SUMMARIES.OMCL/GENE_CLUSTERS_SUMMARIES.clusters_and_uniques' -g '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/results_Vairimorpha_bombi_8.1-3/Submission5/10.SynIma_runs/All_species_vs_ncbi_submission/Vairimorpha_bombi_VR1/Vairimorpha_bombi_VR1.annotation.gff3' -d 1 
+

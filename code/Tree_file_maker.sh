@@ -1,5 +1,5 @@
 #!/bin/bash 
-## Usage: MrBayes_tree_generator 
+## Usage: Tree_file_maker.sh
 ##
 ## Options:
 ##   -h, --help    Display this message.
@@ -25,7 +25,7 @@ all_orthomcl="./all_orthomcl.out"
 grep "36 taxa" $all_orthomcl > all_shared_orthogroups
 
 # Save single copy orthogroups that are shared by all microsporidia 
-grep "36 genes,36 taxa" $all_orthomcl > shared_sc_orthogroups
+grep "(36 genes,36 taxa)" $all_orthomcl > shared_sc_orthogroups
 # add space to orthogroupID for splitting later
 sed -i "s/(/ (/g" shared_sc_orthogroups
 
@@ -64,6 +64,7 @@ sed -i '/pep_organism_name=/s/.*pep_organism_name=/>/g' *_peps
 sed -i 's/ *$//' *_peps
 # Replace dashes with underscores
 sed -i '/>/s/-/_/' *_peps
+sed -i 's/-/_/g' *_peps
 
 
 ########################################
@@ -94,7 +95,7 @@ done
 ###################################################
 
 # Run concatenation code written with rfarrer to pull all matched orthologs together
-perl ../../../../code/folder_of_fastas_to_cat.pl . > "All_matched_orthologs_across_species.fa"
+perl '/home/vlb19/Documents/Coding/2022-23_Vairimorpha_bombi_de_novo_genome/code/folder_of_fastas_to_cat.pl' . > "All_matched_orthologs_across_species.fa"
 
 # Run FASTA-parser code from rfarrer to convert the FASTA file into a NEXUS file for MrBayes
 perl '/home/vlb19/Documents/Coding/Downloaded_Repositories/2022_Farrer_Lab_Code/perl_scripts/FASTA-parser.pl' -s "All_matched_orthologs_across_species.fa" -p nexus -d protein > "All_matched_orthologs_across_species.nexus"
@@ -117,7 +118,7 @@ sumt burninfrac=0.25
 ### Run RAxML ###
 #################
 
-raxmlHPC -p 7487643260 -f a -x 1784414621 -# 1000 -m PROTGAMMAAUTO -n raxml_tree -s All_matched_orthologs_across_species.phylip -T 2
+raxmlHPC -p 7487643260 -f a -x 1784414621 -# 1000 -m PROTGAMMAILGF -n bootstrapped_raxml_tree -s All_matched_orthologs_across_species.phylip -T 2
 # -f a runs the program in bootstrapping mode
 # -p is random seed number to make your tree reproducible 
 # -x is random number seed for bootstrapping to make your analysis reproducible
@@ -125,8 +126,56 @@ raxmlHPC -p 7487643260 -f a -x 1784414621 -# 1000 -m PROTGAMMAAUTO -n raxml_tree
 # -s is the alignment file 
 # -n is the output file 
 # -T is the number of cores (optional - Rhys recommends no more than 3)
-# -m sets the protein model 
+# -m sets the protein model (LG+I+F+G selected from ProtTest)
 
 
 # open figtree 
 figtree 
+
+
+
+
+##########################
+### Useless extra code ### 
+##########################
+
+
+# Remove bp count from pep sequences 
+sed -i 's/ .*/ /' *.afa.fa
+
+# Remove newline characters
+sed -i -z 's/[\n\r]//g' *.afa.fa
+
+# Add newlines to separate species
+sed -i 's/>/\n>/g' *.afa.fa
+
+# Sort pep files by species
+for pep_file in *.afa.fa; do 
+    sort -o $pep_file $pep_file
+done
+
+# Create function to merge all pep files into one file
+function multijoin() {
+    out=$1
+    shift 1
+    cat $1 | awk '{print $1}' > $out
+    for f in $*; do join $out $f > tmp; mv tmp $out; done
+}
+
+# Merge all pep files into one file and remove empty first line
+multijoin All_matched_orthologs_across_species.fa *afa.fa 
+
+# Remove empty first line 
+sed -i '1d' All_matched_orthologs_across_species.fa
+
+# Remove extra spaces 
+sed -i 's/ /;/' All_matched_orthologs_across_species.fa
+sed -i 's/ //g' All_matched_orthologs_across_species.fa
+sed -i 's/;/\n/g' All_matched_orthologs_across_species.fa
+
+# Add newlines to species
+sed -i 's/ /\n>/g' All_matched_orthologs_across_species.fa
+
+
+grep \> All_matched_orthologs_across_species.fa | wc -l 
+24

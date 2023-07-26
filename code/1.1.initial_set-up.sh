@@ -27,10 +27,13 @@ mkdir reports_$1/logs
 ########################################
 
 # 1.) Filter high quality reads
-#conda create --yes -n read_quality_filter -c bioconda porechop NanoLyse NanoFilt NanoPlot 
+conda create --yes -n read_quality_filter -c bioconda porechop NanoLyse NanoFilt NanoPlot 
 
 # 3.) Canu assembly 
-#conda create --yes -n canu_assembly -c bioconda canu quast
+conda create --yes -n canu_assembly -c bioconda canu quast
 
 # 4.) BUSCO analysis 
-#conda create --yes -n busco_analysis -c conda-forge -c bioconda busco=5.4.2 
+conda create --yes -n busco_analysis -c conda-forge -c bioconda busco=5.4.2 
+
+# 5.) RepeatMask genome 
+#conda create --yes -n RepeatMask_genome -c bioconda repeatmodeler repeatmasker 
